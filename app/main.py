@@ -4,6 +4,7 @@ import json
 from app.matcher import improved_match
 from app.ai import ai_optimize_resume
 from app.crud import save_resume
+from app.database import SessionLocal, ResumeRecord
 
 app = FastAPI(title="AI Job Agent")
 
@@ -43,8 +44,8 @@ def ai_optimize(resume: str, job_description: str):
         record_id = save_resume(
             resume=resume,
             job_description=job_description,
-            match_score=parsed.get("ats_score_estimate", None),
-            ai_resume=parsed.get("rewritten_resume", None)
+            match_score=parsed.get("ats_score_estimate"),
+            ai_resume=parsed.get("rewritten_resume")
         )
 
         parsed["saved_id"] = record_id
@@ -55,3 +56,22 @@ def ai_optimize(resume: str, job_description: str):
             "error": "AI returned invalid JSON",
             "raw_output": result
         }
+
+
+# ------------------------
+# HISTORY ENDPOINT (NEW)
+# ------------------------
+@app.get("/history")
+def get_history():
+    db = SessionLocal()
+    records = db.query(ResumeRecord).all()
+
+    return [
+        {
+            "id": r.id,
+            "match_score": r.match_score,
+            "resume": r.resume[:200],
+            "job_description": r.job_description[:200],
+        }
+        for r in records
+    ]

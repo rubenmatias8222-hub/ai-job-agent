@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Job Agent</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>AI Job Agent</h2>
+
+        <button onclick="runMatch()">📊 Match</button>
+        <button onclick="runOptimize()">🧠 Optimize</button>
+        <button onclick="loadHistory()">📚 History</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <div class="topbar">
+            <h1>Dashboard</h1>
+        </div>
+
+        <div class="grid">
+
+            <div class="card">
+                <h3>Resume</h3>
+                <textarea id="resume"></textarea>
+            </div>
+
+            <div class="card">
+                <h3>Job Description</h3>
+                <textarea id="job"></textarea>
+            </div>
+
+        </div>
+
+        <div class="results" id="results">
+            <h3>Results will appear here</h3>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
