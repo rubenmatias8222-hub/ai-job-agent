@@ -1,18 +1,13 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, Float, String, DateTime, Text
+from datetime import datetime
+from app.database import Base
 
-DATABASE_URL = "sqlite:///./jobs.db"
+class MatchHistory(Base):
+    __tablename__ = "match_history"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
-
-# Dependency to inject database sessions into API routes
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    score = Column(Float, nullable=False)
+    matched_skills = Column(String, nullable=False)
+    missing_skills = Column(String, nullable=False)
+    ai_explanation = Column(Text, nullable=True)  # NEW LAYER FIELD (Using Text for long paragraphs)
