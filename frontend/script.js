@@ -26,9 +26,9 @@ document.getElementById("matchForm").addEventListener("submit", async (e) => {
     }
 
     const data = await res.json();
-    console.log("Match response:", data); // Important debug line
+    console.log("Match response with AI explanation:", data); // Important debug line
 
-    // Render results dynamically
+    // Render results dynamically with the new AI Explanation Block
     resultDiv.innerHTML = `
       <div class="result-card">
         <h2>ATS Match Results</h2>
@@ -37,6 +37,11 @@ document.getElementById("matchForm").addEventListener("submit", async (e) => {
 
         <div class="score">
           Match Score: ${Number(data.score || 0).toFixed(1)}%
+        </div>
+
+        <div class="ai-feedback-box" style="background-color: #f0f7ff; border-left: 4px solid #0066cc; padding: 15px; margin: 20px 0; border-radius: 4px; text-align: left;">
+          <h4 style="margin-top: 0; color: #004499;">🧠 AI Agent Strategic Analysis:</h4>
+          <p style="font-style: italic; font-size: 0.95em; line-height: 1.5; color: #333; margin-bottom: 0;">"${data.explanation}"</p>
         </div>
 
         <h3>Matched Skills</h3>
@@ -60,7 +65,6 @@ document.getElementById("matchForm").addEventListener("submit", async (e) => {
 
 // 2. NAVIGATION HELPER: SHOW THE MATCH FORM
 function runMatch() {
-  // Ensure the main form layout is visible, and clear old history lists if present
   document.getElementById("matchForm").style.display = "flex";
   document.getElementById("result").innerHTML = "";
 }
@@ -96,8 +100,7 @@ async function loadHistory() {
         <tr>
           <td>${formattedDate}</td>
           <td><strong>${record.score.toFixed(1)}%</strong></td>
-          <td>${record.matched_skills}</td>
-          <td>${record.missing_skills}</td>
+          <td><span style="font-size: 0.85em; color: #555;">${record.ai_explanation || "No analysis recorded."}</span></td>
         </tr>
       `;
     }).join("");
@@ -108,10 +111,9 @@ async function loadHistory() {
         <table border="1" style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 15px;">
           <thead>
             <tr style="background-color: #f2f2f2; color: #333;">
-              <th style="padding: 10px;">Date & Time</th>
-              <th style="padding: 10px;">Score</th>
-              <th style="padding: 10px;">Matched Skills</th>
-              <th style="padding: 10px;">Missing Skills</th>
+              <th style="padding: 10px; width: 25%;">Date & Time</th>
+              <th style="padding: 10px; width: 15%;">Score</th>
+              <th style="padding: 10px; width: 60%;">AI Insights Summary</th>
             </tr>
           </thead>
           <tbody>
