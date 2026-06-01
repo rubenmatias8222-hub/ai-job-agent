@@ -1,77 +1,31 @@
 from fastapi import FastAPI
-import json
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
-from app.matcher import improved_match
-from app.ai import ai_optimize_resume
-from app.crud import save_resume
-from app.database import SessionLocal, ResumeRecord
+from app.matcher import improved_match  # IMPORTANT
 
 app = FastAPI(title="AI Job Agent")
 
+# ------------------------
+# FRONTEND
+# ------------------------
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 # ------------------------
-# Home endpoint
+# REQUEST MODEL
 # ------------------------
-@app.get("/")
-def home():
-    return {"message": "AI Job Agent is running"}
-
+class MatchRequest(BaseModel):
+    resume: str
+    job_description: str
 
 # ------------------------
-# ATS Match endpoint
+# API ROUTE
 # ------------------------
-@app.post("/match")
-def match(resume: str, job_description: str):
-    score, matched, missing = improved_match(resume, job_description)
-
+@app.post("/api/match")
+def match(data: MatchRequest):
+    score, matched, missing = improved_match(data.resume, data.job_description)
     return {
-        "match_score": score,
-        "matched_skills": matched,
-        "missing_skills": missing
+        "score": score,
+        "matched": matched,
+        "missing": missing
     }
-
-
-# ------------------------
-# AI Resume Optimization + Save to DB
-# ------------------------
-@app.post("/ai-optimize")
-def ai_optimize(resume: str, job_description: str):
-    result = ai_optimize_resume(resume, job_description)
-
-    try:
-        parsed = json.loads(result)
-
-        record_id = save_resume(
-            resume=resume,
-            job_description=job_description,
-            match_score=parsed.get("ats_score_estimate"),
-            ai_resume=parsed.get("rewritten_resume")
-        )
-
-        parsed["saved_id"] = record_id
-        return parsed
-
-    except Exception:
-        return {
-            "error": "AI returned invalid JSON",
-            "raw_output": result
-        }
-
-
-# ------------------------
-# HISTORY ENDPOINT (NEW)
-# ------------------------
-@app.get("/history")
-def get_history():
-    db = SessionLocal()
-    records = db.query(ResumeRecord).all()
-
-    return [
-        {
-            "id": r.id,
-            "match_score": r.match_score,
-            "resume": r.resume[:200],
-            "job_description": r.job_description[:200],
-        }
-        for r in records
-    ]
