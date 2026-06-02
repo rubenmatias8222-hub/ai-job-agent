@@ -1,63 +1,55 @@
+// FORM SUBMIT
 document.getElementById("matchForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const resume = document.getElementById("resume").value;
-  const job_description = document.getElementById("job_description").value;
-  const resultDiv = document.getElementById("result");
+  const resumeFile = document.getElementById("resumeFile").files[0];
+const job_description = document.getElementById("job_description").value;
+const resultDiv = document.getElementById("result");
 
-  // Show a loading state to the user
-  resultDiv.innerHTML = `<div class="result-card"><p>Analyzing match... Please wait.</p></div>`;
+resultDiv.innerHTML = "Analyzing...";
 
-  try {
-    const res = await fetch("/api/match", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        resume: resume,
-        job_description: job_description
-      })
-    });
+if (!resumeFile) {
+  alert("Please upload your CV first");
+  return;
+}
 
-    if (!res.ok) {
-      throw new Error(`Server error: ${res.status}`);
-    }
+try {
+  const formData = new FormData();
+  formData.append("file", resumeFile);
+  formData.append("job_description", job_description);
 
-    const data = await res.json();
+  const res = await fetch("/api/match", {
+    method: "POST",
+    body: formData
+  });
 
-    console.log(data); // IMPORTANT DEBUG LINE
+  const data = await res.json();
 
-    // Safely render the results
-    resultDiv.innerHTML = `
-      <div class="result-card">
-        <h2>ATS Match Results</h2>
+  resultDiv.innerHTML = `
+    <h2>Match Result</h2>
+    <p><strong>Score:</strong> ${data.score}%</p>
 
-        <progress value="${Number(data.score || 0)}" max="100"></progress>
+    <h3>Matched Skills</h3>
+    <p>${data.matched.join(", ")}</p>
 
-        <div class="score">
-          Match Score: ${Number(data.score || 0).toFixed(1)}%
-        </div>
+    <h3>Missing Skills</h3>
+    <p>${data.missing.join(", ")}</p>
 
-        <h3>Matched Skills</h3>
-        <p>${Array.isArray(data.matched) 
-          ? data.matched.join(", ") 
-          : (data.matched || "None identified")}</p>
+    <h3>AI Insight</h3>
+    <p>${data.explanation}</p>
+  `;
 
-        <h3>Missing Skills</h3>
-        <p>${Array.isArray(data.missing) 
-          ? data.missing.join(", ") 
-          : (data.missing || "None identified")}</p>
-      </div>
-    `;
-
-  } catch (error) {
-    console.error("Error matching resume:", error);
-    resultDiv.innerHTML = `
-      <div class="result-card" style="border-left: 5px solid #ff4d4d;">
-        <h2>Error</h2>
-        <p>Failed to fetch match results. Please try again later.</p>
-      </div>
-    `;
-  }
+} catch (err) {
+  console.error(err);
+  resultDiv.innerHTML = "Error processing file.";
+}
 });
+
+function showMatch() {
+  document.getElementById("matchForm").style.display = "block";
+  document.getElementById("result").innerHTML = "";
+}
+
+function showHistory() {
+  document.getElementById("result").innerHTML = "<h3>History coming soon...</h3>";
+}

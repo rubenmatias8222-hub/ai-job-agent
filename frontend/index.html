@@ -3,41 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Job Agent</title>
-    <link rel="stylesheet" href="style.css">
+    <title>AI Smart Job Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
 
-<div class="app">
-
-    <div class="sidebar">
-        <h2>AI Job Agent</h2>
-        <button onclick="runMatch()">📊 Match</button>
-        <button onclick="runOptimize()">🧠 Optimize</button>
-        <button onclick="loadHistory()">📚 History</button>
-    </div>
-
-    <div class="main">
-
-        <div class="topbar">
-            <h1>Resume Matcher</h1>
+    <div class="max-w-4xl w-full bg-white shadow-lg rounded-xl p-8 space-y-6">
+        <h1 class="text-2xl font-bold text-gray-900 border-b pb-4">Smart AI Match Agent 🚀</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Upload CV (PDF, DOCX, TXT)</label>
+                <input type="file" id="file-input" accept=".pdf,.docx,.txt" class="w-full p-2 border rounded-lg bg-gray-50 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Job Description</label>
+                <textarea id="job-input" rows="4" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Paste target job description here..."></textarea>
+            </div>
         </div>
 
-        <form id="matchForm">
-            <label for="resume">Your Resume:</label>
-            <textarea id="resume" placeholder="Paste your resume here..."></textarea>
+        <button onclick="runSmartMatch()" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition shadow-md">
+            Analyze with AI Agent
+        </button>
 
-            <label for="job_description">Job Description:</label>
-            <textarea id="job_description" placeholder="Paste job description here..."></textarea>
+        <hr class="border-gray-200">
 
-            <button type="submit">Match Resume</button>
-        </form>
+        <div class="space-y-6">
+            <div class="flex items-center justify-between bg-blue-50 p-4 rounded-lg">
+                <h2 class="text-xl font-bold text-gray-800">Match Results Matrix</h2>
+                <div class="text-2xl font-black text-blue-700">Score: <span id="result-score">0%</span></div>
+            </div>
 
-        <div id="result"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <h3 class="font-bold text-green-800 mb-2">✅ Matched Skills & Strengths</h3>
+                    <div id="matched-skills" class="flex flex-wrap gap-2 text-xs font-medium text-green-700"></div>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                    <h3 class="font-bold text-red-800 mb-2">❌ Missing Skills / Gaps</h3>
+                    <div id="missing-skills" class="flex flex-wrap gap-2 text-xs font-medium text-red-700"></div>
+                </div>
+            </div>
 
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-bold text-gray-800">📋 What the Job Demands</h3>
+                    <ul id="job-requirements" class="list-disc list-inside text-sm text-gray-600 space-y-1 mt-1"></ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-gray-800">🚀 Critical Action Items & Where to Improve</h3>
+                    <ul id="improvements" class="list-disc list-inside text-sm text-amber-800 bg-amber-50 p-3 rounded-lg space-y-1 mt-1 border border-amber-100"></ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-gray-800">🏢 Recommended Hiring Companies</h3>
+                    <div id="companies-list" class="grid grid-cols-1 gap-3 mt-2">
+                        <p class="text-sm text-gray-400 italic">Analyze your data to find local companies match lists.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-gray-800">🧠 AI Summary Insight</h3>
+                    <p id="ai-insight" class="text-gray-600 text-sm italic mt-1 bg-gray-50 p-3 rounded-lg border"></p>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-<script src="script.js"></script>
+    <script>
+        async function runSmartMatch() {
+            const fileInput = document.getElementById('file-input');
+            const jobText = document.getElementById('job-input').value;
+
+            if (fileInput.files.length === 0 || !jobText) {
+                alert("Please provide both a file and a job description!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("job_description", jobText);
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/match', {
+                    method: 'POST',
+                    body: formData 
+                });
+
+                if (!response.ok) throw new Error("API parser processing failure.");
+                const data = await response.json();
+
+                // Inject basic scoring data
+                document.getElementById('result-score').innerText = `${data.score}%`;
+                
+                // Inject Matched Skills Badges
+                document.getElementById('matched-skills').innerHTML = data.matched.length 
+                    ? data.matched.map(s => `<span class="bg-green-100 border border-green-200 px-2 py-1 rounded-md capitalize">${s}</span>`).join('')
+                    : '<span class="text-gray-400 italic">No direct matches identified.</span>';
+
+                // Inject Missing Skills Badges
+                document.getElementById('missing-skills').innerHTML = data.missing.length 
+                    ? data.missing.map(s => `<span class="bg-red-100 border border-red-200 px-2 py-1 rounded-md capitalize">${s}</span>`).join('')
+                    : '<span class="text-gray-400 italic">No major skill gaps identified!</span>';
+
+                // Build structural list outputs
+                document.getElementById('job-requirements').innerHTML = data.job_requirements.map(req => `<li>${req}</li>`).join('');
+                document.getElementById('improvements').innerHTML = data.improvements.map(imp => `<li>${imp}</li>`).join('');
+                document.getElementById('ai-insight').innerText = data.explanation;
+
+                // Dynamic Local Company Matching Section
+                const companyContainer = document.getElementById('companies-list');
+                if (data.hiring_companies && data.hiring_companies.length > 0) {
+                    companyContainer.innerHTML = data.hiring_companies.map(job => `
+                        <div class="p-4 bg-blue-50/50 border border-blue-100 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h4 class="font-bold text-gray-900">${job.company}</h4>
+                                <p class="text-sm text-gray-600">${job.title} — <span class="text-xs text-gray-500">${job.location}</span></p>
+                                <p class="text-xs text-blue-700 mt-1">Matched Skills: ${job.matched_skills.join(', ')}</p>
+                            </div>
+                            <a href="${job.link}" target="_blank" class="text-center bg-white border border-blue-600 text-blue-600 text-xs font-semibold px-3 py-2 rounded hover:bg-blue-600 hover:text-white transition">
+                                Apply Now
+                            </a>
+                        </div>
+                    `).join('');
+                } else {
+                    companyContainer.innerHTML = `<p class="text-sm text-gray-500 italic">No current local company vacancies perfectly map to these skills yet.</p>`;
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to communicate with your AI Smart Agent. Ensure Uvicorn is running!");
+            }
+        }
+    </script>
 </body>
 </html>
