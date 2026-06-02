@@ -1,53 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Job Agent</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="app">
 
-    <!-- Sidebar -->
     <div class="sidebar">
         <h2>AI Job Agent</h2>
-
         <button onclick="runMatch()">📊 Match</button>
         <button onclick="runOptimize()">🧠 Optimize</button>
         <button onclick="loadHistory()">📚 History</button>
     </div>
 
-    <!-- Main Content -->
     <div class="main">
 
         <div class="topbar">
-            <h1>Dashboard</h1>
+            <h1>Resume Matcher</h1>
         </div>
 
-        <div class="grid">
+        <form id="matchForm">
+            <label for="resume">Your Resume:</label>
+            <textarea id="resume" placeholder="Paste your resume here..."></textarea>
 
-            <div class="card">
-                <h3>Resume</h3>
-                <textarea id="resume"></textarea>
-            </div>
+            <label for="job_description">Job Description:</label>
+            <textarea id="job_description" placeholder="Paste job description here..."></textarea>
 
-            <div class="card">
-                <h3>Job Description</h3>
-                <textarea id="job"></textarea>
-            </div>
+            <button type="submit">Match Resume</button>
+        </form>
 
-        </div>
-
-        <div class="results" id="results">
-            <h3>Results will appear here</h3>
-        </div>
+        <div id="result"></div>
 
     </div>
-
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>

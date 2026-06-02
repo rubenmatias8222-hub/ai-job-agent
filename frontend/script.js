@@ -1,4 +1,3 @@
-// 1. EVENT LISTENER FOR HANDLING THE MATCH FORM SUBMISSION
 document.getElementById("matchForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -6,7 +5,7 @@ document.getElementById("matchForm").addEventListener("submit", async (e) => {
   const job_description = document.getElementById("job_description").value;
   const resultDiv = document.getElementById("result");
 
-  // Visual loading feedback state
+  // Show a loading state to the user
   resultDiv.innerHTML = `<div class="result-card"><p>Analyzing match... Please wait.</p></div>`;
 
   try {
@@ -26,9 +25,10 @@ document.getElementById("matchForm").addEventListener("submit", async (e) => {
     }
 
     const data = await res.json();
-    console.log("Match response with AI explanation:", data); // Important debug line
 
-    // Render results dynamically with the new AI Explanation Block
+    console.log(data); // IMPORTANT DEBUG LINE
+
+    // Safely render the results
     resultDiv.innerHTML = `
       <div class="result-card">
         <h2>ATS Match Results</h2>
@@ -39,16 +39,15 @@ document.getElementById("matchForm").addEventListener("submit", async (e) => {
           Match Score: ${Number(data.score || 0).toFixed(1)}%
         </div>
 
-        <div class="ai-feedback-box" style="background-color: #f0f7ff; border-left: 4px solid #0066cc; padding: 15px; margin: 20px 0; border-radius: 4px; text-align: left;">
-          <h4 style="margin-top: 0; color: #004499;">🧠 AI Agent Strategic Analysis:</h4>
-          <p style="font-style: italic; font-size: 0.95em; line-height: 1.5; color: #333; margin-bottom: 0;">"${data.explanation}"</p>
-        </div>
-
         <h3>Matched Skills</h3>
-        <p>${Array.isArray(data.matched) ? data.matched.join(", ") : (data.matched || "None identified")}</p>
+        <p>${Array.isArray(data.matched) 
+          ? data.matched.join(", ") 
+          : (data.matched || "None identified")}</p>
 
         <h3>Missing Skills</h3>
-        <p>${Array.isArray(data.missing) ? data.missing.join(", ") : (data.missing || "None identified")}</p>
+        <p>${Array.isArray(data.missing) 
+          ? data.missing.join(", ") 
+          : (data.missing || "None identified")}</p>
       </div>
     `;
 
@@ -62,74 +61,3 @@ document.getElementById("matchForm").addEventListener("submit", async (e) => {
     `;
   }
 });
-
-// 2. NAVIGATION HELPER: SHOW THE MATCH FORM
-function runMatch() {
-  document.getElementById("matchForm").style.display = "flex";
-  document.getElementById("result").innerHTML = "";
-}
-
-// 3. FETCH AND RENDER DB MATCH HISTORY LOGS
-async function loadHistory() {
-  const resultDiv = document.getElementById("result");
-  
-  // Hide the core input form visually to make space for our clean data table logs
-  document.getElementById("matchForm").style.display = "none";
-  resultDiv.innerHTML = `<h3>Loading Historical Match Records...</h3>`;
-
-  try {
-    const res = await fetch("/api/history");
-    if (!res.ok) throw new Error("Failed to pull match logs from server.");
-
-    const historyData = await res.json();
-    console.log("History records received:", historyData);
-
-    if (historyData.length === 0) {
-      resultDiv.innerHTML = `
-        <div class="result-card">
-          <h2>Database Empty</h2>
-          <p>No historical scans found. Run your first resume match scan above to populate logs!</p>
-        </div>`;
-      return;
-    }
-
-    // Build responsive HTML table template to house data loops cleanly
-    let tableRows = historyData.map(record => {
-      const formattedDate = new Date(record.timestamp).toLocaleString();
-      return `
-        <tr>
-          <td>${formattedDate}</td>
-          <td><strong>${record.score.toFixed(1)}%</strong></td>
-          <td><span style="font-size: 0.85em; color: #555;">${record.ai_explanation || "No analysis recorded."}</span></td>
-        </tr>
-      `;
-    }).join("");
-
-    resultDiv.innerHTML = `
-      <div class="result-card" style="max-width: 100%; overflow-x: auto;">
-        <h2>Saved Database Scans Log</h2>
-        <table border="1" style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 15px;">
-          <thead>
-            <tr style="background-color: #f2f2f2; color: #333;">
-              <th style="padding: 10px; width: 25%;">Date & Time</th>
-              <th style="padding: 10px; width: 15%;">Score</th>
-              <th style="padding: 10px; width: 60%;">AI Insights Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-  } catch (error) {
-    console.error("Error loading history logs:", error);
-    resultDiv.innerHTML = `<p style="color: #ff4d4d;">Could not process database history logs.</p>`;
-  }
-}
-
-// Placeholder for future optimization roadmap features
-function runOptimize() {
-  alert("AI Optimization feature module coming soon!");
-}
